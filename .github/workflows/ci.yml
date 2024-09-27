@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Replace with your default branch
+  pull_request:
+    branches:
+      - main  # Replace with your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: mydb
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd "pg_isready -U user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'  # Specify your Node.js version
+
+      - name: Install dependencies
+        run: |
+          cd client
+          npm install
+          cd ../server
+          npm install
+
+      - name: Build Docker Images
+        run: |
+          docker build -t aagarwal24/assignment11-server ./client/server
+          docker build -t aagarwal24/assignment11-client ./client
+
+      - name: Push Docker Images
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+          docker push aagarwal24/assignment11-server
+          docker push aagarwal24/assignment11-client
+

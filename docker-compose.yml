@@ -1,0 +1,11 @@
+services:
+  client:
+    build:
+      context: ./client
+    ports:
+      - "3000:3000"  # Client will still be on port 3000
+  server:
+    build:
+      context: ./client/server 
+    ports:
+      - "5001:5000"  # Change the host port to 5001, container still uses 5000
